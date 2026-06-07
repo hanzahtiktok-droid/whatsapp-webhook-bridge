@@ -7,21 +7,16 @@ const VERIFY_TOKEN = 'SID9019';
 
 const server = http.createServer((req, res) => {
   const parsed = url.parse(req.url, true);
-  
-  if (req.method === 'GET') {
-    const mode = parsed.query['hub.mode'];
-    const token = parsed.query['hub.verify_token'];
-    const challenge = parsed.query['hub.challenge'];
-    
-    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-      res.writeHead(200);
-      res.end(challenge);
-    } else {
-      res.writeHead(403);
-      res.end('Forbidden');
-    }
+  const mode = parsed.query['hub.mode'];
+  const token = parsed.query['hub.verify_token'];
+  const challenge = parsed.query['hub.challenge'];
+
+  if (req.method === 'GET' && mode === 'subscribe' && token === VERIFY_TOKEN) {
+    res.writeHead(200);
+    res.end(challenge);
+    return;
   }
-  
+
   if (req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk);
@@ -35,8 +30,12 @@ const server = http.createServer((req, res) => {
       res.writeHead(200);
       res.end('OK');
     });
+    return;
   }
+
+  res.writeHead(200);
+  res.end('OK');
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log('Bridge running on port ' + PORT));
+server.listen(PORT, () => console.log('Running on port ' + PORT));
